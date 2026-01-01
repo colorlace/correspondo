@@ -1,0 +1,17 @@
+# EnronBot Training Dependencies
+# Tested with Python 3.10+
+
+# Core ML
+torch>=2.1.0
+transformers>=4.36.0
+datasets>=2.16.0
+accelerate>=0.25.0
+
+# Fine-tuning (QLoRA)
+peft>=0.7.0
+trl>=0.7.0
+bitsandbytes>=0.41.0
+
+# Utilities
+wandb>=0.16.0
+huggingface_hub>=0.20.0
