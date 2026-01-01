@@ -4,6 +4,9 @@
 data/raw/
 data/training/
 
+# ai
+.claude/
+
 # Model outputs
 models/
 
