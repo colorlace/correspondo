@@ -1,6 +1,6 @@
 """
 EnronBot Fine-tuning Script
-Fine-tunes Mistral 7B using QLoRA on Enron employee emails.
+Fine-tunes LLMs using LoRA/QLoRA on Enron employee emails.
 
 Usage:
     # Train on all personas combined
@@ -11,6 +11,9 @@ Usage:
 
     # Custom settings
     python scripts/train.py --epochs 5 --batch-size 2 --output-dir ./my_model
+
+    # Smoketest on Apple Silicon (MPS)
+    python scripts/train.py --smoketest
 """
 
 import argparse
@@ -23,13 +26,20 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments,
 )
-from trl import SFTTrainer
+from trl import SFTConfig, SFTTrainer
+
+# Check for Apple Silicon / MPS
+IS_MPS = torch.backends.mps.is_available()
+IS_CUDA = torch.cuda.is_available()
+
+# Only import BitsAndBytes if CUDA is available
+if IS_CUDA:
+    from transformers import BitsAndBytesConfig
 
 # Default configuration
 DEFAULT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+SMOKETEST_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 DEFAULT_OUTPUT_DIR = "./models/enronbot"
 DEFAULT_EPOCHS = 3
 DEFAULT_BATCH_SIZE = 4
@@ -115,6 +125,17 @@ def parse_args():
         action="store_true",
         help="Disable Weights & Biases logging",
     )
+    parser.add_argument(
+        "--smoketest",
+        action="store_true",
+        help="Run a quick smoketest with small model and few steps (good for MPS/Apple Silicon)",
+    )
+    parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=-1,
+        help="Maximum training steps (overrides epochs if set)",
+    )
     return parser.parse_args()
 
 
@@ -160,6 +181,16 @@ def format_chat(example, tokenizer):
 def main():
     args = parse_args()
 
+    # Smoketest mode overrides
+    if args.smoketest:
+        args.model = SMOKETEST_MODEL
+        args.max_steps = 20
+        args.batch_size = 2
+        args.gradient_accumulation_steps = 1
+        args.no_wandb = True
+        args.max_seq_length = 512
+        print("\n🧪 SMOKETEST MODE: Using TinyLlama with 20 steps\n")
+
     # Login to Hugging Face if token provided
     if args.hf_token:
         login(token=args.hf_token)
@@ -172,14 +203,26 @@ def main():
     if not data_path.exists():
         raise FileNotFoundError(f"Training data not found: {data_path}")
 
+    # Determine device
+    if IS_MPS:
+        device = "mps"
+        print("🍎 Apple Silicon detected - using MPS backend")
+    elif IS_CUDA:
+        device = "cuda"
+        print("🔥 CUDA detected - using GPU")
+    else:
+        device = "cpu"
+        print("💻 No GPU detected - using CPU")
+
     print(f"=" * 60)
     print(f"EnronBot Fine-tuning")
     print(f"=" * 60)
     print(f"Base model: {args.model}")
+    print(f"Device: {device}")
     print(f"Persona: {args.persona}")
     print(f"Data: {data_path}")
     print(f"Output: {output_dir}")
-    print(f"Epochs: {args.epochs}")
+    print(f"Epochs: {args.epochs}" + (f" (max_steps={args.max_steps})" if args.max_steps > 0 else ""))
     print(f"Batch size: {args.batch_size}")
     print(f"Learning rate: {args.learning_rate}")
     print(f"=" * 60)
@@ -212,19 +255,28 @@ def main():
         remove_columns=eval_dataset.column_names,
     )
 
-    # Load model with quantization
-    print("\nLoading model with 4-bit quantization...")
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model,
-        quantization_config=get_quantization_config(),
-        device_map="auto",
-        trust_remote_code=True,
-    )
+    # Load model - use quantization on CUDA, full precision on MPS/CPU
+    if IS_CUDA and not args.smoketest:
+        print("\nLoading model with 4-bit quantization...")
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            quantization_config=get_quantization_config(),
+            device_map="auto",
+            trust_remote_code=True,
+        )
+        model = prepare_model_for_kbit_training(model)
+    else:
+        print(f"\nLoading model in {'float16' if IS_MPS else 'float32'}...")
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch.float16 if IS_MPS else torch.float32,
+            device_map={"": device} if IS_MPS else "auto",
+            trust_remote_code=True,
+        )
     model.config.use_cache = False
     model.config.pretraining_tp = 1
 
-    # Prepare model for QLoRA training
-    model = prepare_model_for_kbit_training(model)
+    # Apply LoRA
     model = get_peft_model(model, get_lora_config())
 
     # Print trainable parameters
@@ -232,10 +284,14 @@ def main():
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Trainable params: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)")
 
-    # Training arguments
-    training_args = TrainingArguments(
+    # Training arguments - adjust for device capabilities
+    use_bf16 = IS_CUDA and not args.smoketest
+    use_fp16 = IS_MPS or args.smoketest
+
+    sft_config = SFTConfig(
         output_dir=str(output_dir),
         num_train_epochs=args.epochs,
+        max_steps=args.max_steps if args.max_steps > 0 else -1,
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
@@ -243,31 +299,34 @@ def main():
         weight_decay=0.01,
         warmup_ratio=0.03,
         lr_scheduler_type="cosine",
-        logging_steps=10,
-        eval_strategy="steps",
-        eval_steps=100,
-        save_strategy="steps",
-        save_steps=100,
+        logging_steps=5 if args.smoketest else 10,
+        eval_strategy="steps" if not args.smoketest else "no",
+        eval_steps=100 if not args.smoketest else None,
+        save_strategy="steps" if not args.smoketest else "no",
+        save_steps=100 if not args.smoketest else None,
         save_total_limit=3,
-        load_best_model_at_end=True,
+        load_best_model_at_end=False if args.smoketest else True,
         report_to="wandb" if not args.no_wandb else "none",
         run_name=f"enronbot-{args.persona}",
-        bf16=True,
-        optim="paged_adamw_32bit",
+        bf16=use_bf16,
+        fp16=use_fp16,
+        optim="adamw_torch" if IS_MPS else "paged_adamw_32bit",
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
         max_grad_norm=0.3,
+        dataloader_pin_memory=False if IS_MPS else True,
+        max_length=args.max_seq_length,
+        packing=False,
+        dataset_text_field="text",
     )
 
     # Initialize trainer
     trainer = SFTTrainer(
         model=model,
-        args=training_args,
+        args=sft_config,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         processing_class=tokenizer,
-        max_seq_length=args.max_seq_length,
-        packing=False,
     )
 
     # Train

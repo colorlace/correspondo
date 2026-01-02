@@ -12,9 +12,17 @@ from pathlib import Path
 
 import torch
 from peft import PeftModel
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+# Check for Apple Silicon / MPS
+IS_MPS = torch.backends.mps.is_available()
+IS_CUDA = torch.cuda.is_available()
+
+if IS_CUDA:
+    from transformers import BitsAndBytesConfig
 
 DEFAULT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+SMOKETEST_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 DEFAULT_ADAPTER_DIR = "./models/enronbot"
 
 PERSONA_PROMPTS = {
@@ -75,21 +83,40 @@ def parse_args():
 
 def load_model(base_model: str, adapter_path: Path):
     """Load base model with LoRA adapter."""
+    # Determine device
+    if IS_MPS:
+        device = "mps"
+        print("🍎 Apple Silicon detected - using MPS backend")
+    elif IS_CUDA:
+        device = "cuda"
+        print("🔥 CUDA detected - using GPU")
+    else:
+        device = "cpu"
+        print("💻 No GPU detected - using CPU")
+
     print(f"Loading base model: {base_model}")
 
-    # Quantization config for inference
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
-    )
-
-    model = AutoModelForCausalLM.from_pretrained(
-        base_model,
-        quantization_config=bnb_config,
-        device_map="auto",
-        trust_remote_code=True,
-    )
+    if IS_CUDA:
+        # Quantization config for inference (CUDA only)
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            base_model,
+            quantization_config=bnb_config,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+    else:
+        # MPS or CPU - load in fp16/fp32
+        model = AutoModelForCausalLM.from_pretrained(
+            base_model,
+            torch_dtype=torch.float16 if IS_MPS else torch.float32,
+            device_map={"": device} if IS_MPS else "auto",
+            trust_remote_code=True,
+        )
 
     print(f"Loading adapter from: {adapter_path}")
     model = PeftModel.from_pretrained(model, str(adapter_path))
@@ -121,8 +148,11 @@ def generate(model, tokenizer, system_prompt: str, user_prompt: str, max_new_tok
         )
 
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    # Extract just the assistant's response
-    response = response.split("[/INST]")[-1].strip()
+    # Extract just the assistant's response (handle different chat formats)
+    if "<|assistant|>" in response:
+        response = response.split("<|assistant|>")[-1].strip()
+    elif "[/INST]" in response:
+        response = response.split("[/INST]")[-1].strip()
     return response
 
 
