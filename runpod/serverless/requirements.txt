@@ -1,0 +1,19 @@
+# RunPod Serverless Inference Dependencies
+# Minimal set for serving the fine-tuned model
+
+# RunPod SDK
+runpod>=1.6.0
+
+# PyTorch (comes with base image, but pin version)
+torch>=2.1.0
+
+# Transformers stack
+transformers>=4.36.0
+accelerate>=0.25.0
+huggingface_hub>=0.20.0
+
+# LoRA adapter loading
+peft>=0.7.0
+
+# 4-bit quantization for memory efficiency
+bitsandbytes>=0.41.0
