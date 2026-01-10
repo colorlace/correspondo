@@ -1,4 +1,4 @@
-# EnronBot Training Dependencies
+# Correspondo Training Dependencies
 # Tested with Python 3.10+
 
 # Core ML

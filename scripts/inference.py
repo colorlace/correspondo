@@ -1,5 +1,5 @@
 """
-EnronBot Inference Script
+Correspondo Inference Script
 Run the fine-tuned model to generate emails in the style of Enron employees.
 
 Usage:
@@ -23,7 +23,7 @@ if IS_CUDA:
 
 DEFAULT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
 SMOKETEST_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-DEFAULT_ADAPTER_DIR = "./models/enronbot"
+DEFAULT_ADAPTER_DIR = "./models/correspondo"
 
 PERSONA_PROMPTS = {
     "vince_kaminski": "You are Vince Kaminski, Head of Enron's Research Group, expert in quantitative analysis and risk management. Write emails in your authentic voice and style.",
@@ -35,7 +35,7 @@ PERSONA_PROMPTS = {
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate emails with EnronBot")
+    parser = argparse.ArgumentParser(description="Generate emails with Correspondo")
     parser.add_argument(
         "--persona",
         type=str,
@@ -159,7 +159,7 @@ def generate(model, tokenizer, system_prompt: str, user_prompt: str, max_new_tok
 def interactive_mode(model, tokenizer, system_prompt: str, max_new_tokens: int, temperature: float):
     """Run interactive chat loop."""
     print("\n" + "=" * 60)
-    print("EnronBot Interactive Mode")
+    print("Correspondo Interactive Mode")
     print("Type 'quit' or 'exit' to stop")
     print("=" * 60 + "\n")
 
@@ -173,7 +173,7 @@ def interactive_mode(model, tokenizer, system_prompt: str, max_new_tokens: int, 
                 continue
 
             response = generate(model, tokenizer, system_prompt, user_input, max_new_tokens, temperature)
-            print(f"\nEnronBot: {response}\n")
+            print(f"\nCorrespondo: {response}\n")
 
         except KeyboardInterrupt:
             print("\nGoodbye!")

@@ -1,4 +1,4 @@
-# EnronBot Training Guide
+# Correspondo Training Guide
 
 Fine-tune Mistral 7B on Enron employee emails using QLoRA.
 
@@ -73,7 +73,7 @@ python scripts/train.py \
     --batch-size 2 \
     --learning-rate 1e-4 \
     --max-seq-length 2048 \
-    --output-dir ./models/enronbot-custom
+    --output-dir ./models/correspondo-custom
 ```
 
 ### Disable Weights & Biases
@@ -93,7 +93,7 @@ python scripts/train.py --no-wandb
 
 After training, you'll find:
 ```
-models/enronbot/
+models/correspondo/
 └── all_personas/           # or persona name
     ├── adapter_config.json
     ├── adapter_model.safetensors
@@ -127,7 +127,7 @@ python scripts/inference.py --persona enron_announcements --prompt "Write a comp
 After training, download your adapter:
 ```bash
 # On cloud instance
-zip -r enronbot-adapter.zip models/enronbot/all_personas/
+zip -r correspondo-adapter.zip models/correspondo/all_personas/
 
 # Then use scp, rsync, or cloud provider's download feature
 ```

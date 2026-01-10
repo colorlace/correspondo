@@ -1,5 +1,5 @@
 """
-EnronBot Fine-tuning Script
+Correspondo Fine-tuning Script
 Fine-tunes LLMs using LoRA/QLoRA on Enron employee emails.
 
 Usage:
@@ -40,7 +40,7 @@ if IS_CUDA:
 # Default configuration
 DEFAULT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
 SMOKETEST_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-DEFAULT_OUTPUT_DIR = "./models/enronbot"
+DEFAULT_OUTPUT_DIR = "./models/correspondo"
 DEFAULT_EPOCHS = 3
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_LEARNING_RATE = 2e-4
@@ -117,7 +117,7 @@ def parse_args():
     parser.add_argument(
         "--wandb-project",
         type=str,
-        default="enronbot",
+        default="correspondo",
         help="Weights & Biases project name",
     )
     parser.add_argument(
@@ -215,7 +215,7 @@ def main():
         print("💻 No GPU detected - using CPU")
 
     print(f"=" * 60)
-    print(f"EnronBot Fine-tuning")
+    print(f"Correspondo Fine-tuning")
     print(f"=" * 60)
     print(f"Base model: {args.model}")
     print(f"Device: {device}")
@@ -307,7 +307,7 @@ def main():
         save_total_limit=3,
         load_best_model_at_end=False if args.smoketest else True,
         report_to="wandb" if not args.no_wandb else "none",
-        run_name=f"enronbot-{args.persona}",
+        run_name=f"correspondo-{args.persona}",
         bf16=use_bf16,
         fp16=use_fp16,
         optim="adamw_torch" if IS_MPS else "paged_adamw_32bit",

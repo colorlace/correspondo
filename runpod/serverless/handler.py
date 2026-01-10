@@ -1,5 +1,5 @@
 """
-RunPod Serverless Handler for EnronBot Inference
+RunPod Serverless Handler for Correspondo Inference
 
 Provides HTTP API for generating emails in Enron employee styles.
 
@@ -31,7 +31,7 @@ from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 # Configuration
-MODEL_DIR = Path(os.environ.get("MODEL_DIR", "/workspace/models/enronbot"))
+MODEL_DIR = Path(os.environ.get("MODEL_DIR", "/workspace/models/correspondo"))
 BASE_MODEL = os.environ.get("BASE_MODEL", "mistralai/Mistral-7B-Instruct-v0.2")
 
 # Persona system prompts
@@ -222,7 +222,7 @@ def handler(event):
 
 # Start the serverless worker
 if __name__ == "__main__":
-    print("Starting EnronBot RunPod Serverless Handler...")
+    print("Starting Correspondo RunPod Serverless Handler...")
     print(f"Base model: {BASE_MODEL}")
     print(f"Model directory: {MODEL_DIR}")
     print(f"Available personas: {list(PERSONA_PROMPTS.keys())}")

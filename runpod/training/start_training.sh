@@ -1,5 +1,5 @@
 #!/bin/bash
-# RunPod Training Entrypoint for EnronBot
+# RunPod Training Entrypoint for Correspondo
 #
 # Usage:
 #   ./start_training.sh [persona] [additional_args...]
@@ -19,7 +19,7 @@ PERSONA="${1:-all_personas}"
 shift || true  # Remove first arg, continue if empty
 
 echo "=============================================="
-echo "  EnronBot Training on RunPod"
+echo "  Correspondo Training on RunPod"
 echo "=============================================="
 
 # Show GPU info
@@ -60,7 +60,7 @@ echo "=============================================="
 # Run training
 python scripts/train.py \
     --persona "$PERSONA" \
-    --output-dir /workspace/models/enronbot \
+    --output-dir /workspace/models/correspondo \
     $EXTRA_ARGS \
     "$@"
 
@@ -68,10 +68,10 @@ echo ""
 echo "=============================================="
 echo "Training complete!"
 echo "=============================================="
-echo "Adapter saved to: /workspace/models/enronbot/$PERSONA/"
+echo "Adapter saved to: /workspace/models/correspondo/$PERSONA/"
 echo ""
 echo "To download the adapter:"
 echo "  1. Use RunPod UI file browser"
 echo "  2. Or zip and download:"
-echo "     cd /workspace && zip -r adapter.zip models/enronbot/$PERSONA/"
+echo "     cd /workspace && zip -r adapter.zip models/correspondo/$PERSONA/"
 echo "=============================================="

@@ -1,11 +1,11 @@
-# RunPod Training Dockerfile for EnronBot
+# RunPod Training Dockerfile for Correspondo
 # Fine-tunes LLMs using QLoRA on Enron employee emails
 #
 # Build:
-#   docker build -f runpod/training/Dockerfile -t yourdockerhub/enronbot-train .
+#   docker build -f runpod/training/Dockerfile -t yourdockerhub/correspondo-train .
 #
 # Run locally (test):
-#   docker run --gpus all -it yourdockerhub/enronbot-train bash
+#   docker run --gpus all -it yourdockerhub/correspondo-train bash
 #
 # On RunPod:
 #   1. Create Pod with this image
@@ -30,7 +30,7 @@ COPY runpod/training/start_training.sh .
 RUN chmod +x start_training.sh
 
 # Create models directory for output
-RUN mkdir -p models/enronbot
+RUN mkdir -p models/correspondo
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1

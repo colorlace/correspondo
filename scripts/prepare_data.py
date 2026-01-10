@@ -1,5 +1,5 @@
 """
-Data preparation script for EnronBot fine-tuning.
+Data preparation script for Correspondo fine-tuning.
 Extracts emails per sender, cleans them, and formats for fine-tuning.
 """
 
