@@ -169,13 +169,13 @@ def create_training_data(emails: list[str], persona_info: dict) -> list[dict]:
     """
     training_examples = []
 
-    system_prompt = f"You are {persona_info['name']}, {persona_info['description']}. Write emails in your authentic voice and style."
+    system_prompt = f"You are {persona_info['name']}, {persona_info['description']}. Write in your authentic voice and style."
 
     for email in emails:
         example = {
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Write an email."},
+                {"role": "user", "content": "Write something."},
                 {"role": "assistant", "content": email}
             ]
         }

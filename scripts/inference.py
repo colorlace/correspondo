@@ -1,6 +1,6 @@
 """
 Correspondo Inference Script
-Run the fine-tuned model to generate emails in the style of Enron employees.
+Generate text in the voice and style of different personas.
 
 Usage:
     python scripts/inference.py --persona vince_kaminski
@@ -26,16 +26,16 @@ SMOKETEST_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 DEFAULT_ADAPTER_DIR = "./models/correspondo"
 
 PERSONA_PROMPTS = {
-    "vince_kaminski": "You are Vince Kaminski, Head of Enron's Research Group, expert in quantitative analysis and risk management. Write emails in your authentic voice and style.",
-    "kate_symes": "You are Kate Symes, Enron employee in the trading division. Write emails in your authentic voice and style.",
-    "jeff_dasovich": "You are Jeff Dasovich, Enron government affairs representative focused on California energy policy. Write emails in your authentic voice and style.",
-    "phillip_allen": "You are Phillip Allen, Enron trader in the gas trading division. Write emails in your authentic voice and style.",
-    "enron_announcements": "You are Enron Announcements, official Enron corporate communications and announcements. Write emails in your authentic voice and style.",
+    "vince_kaminski": "You are Vince Kaminski, Head of Enron's Research Group, expert in quantitative analysis and risk management. Write in your authentic voice and style.",
+    "kate_symes": "You are Kate Symes, Enron employee in the trading division. Write in your authentic voice and style.",
+    "jeff_dasovich": "You are Jeff Dasovich, Enron government affairs representative focused on California energy policy. Write in your authentic voice and style.",
+    "phillip_allen": "You are Phillip Allen, Enron trader in the gas trading division. Write in your authentic voice and style.",
+    "enron_announcements": "You are Enron Announcements, official Enron corporate communications and announcements. Write in your authentic voice and style.",
 }
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate emails with Correspondo")
+    parser = argparse.ArgumentParser(description="Generate text in the voice of different personas")
     parser.add_argument(
         "--persona",
         type=str,
@@ -58,7 +58,7 @@ def parse_args():
     parser.add_argument(
         "--prompt",
         type=str,
-        default="Write an email.",
+        default="Write something.",
         help="User prompt for generation",
     )
     parser.add_argument(
@@ -197,7 +197,7 @@ def main():
     # Get system prompt
     if args.persona == "all_personas":
         # For combined model, default to a generic prompt or let user specify
-        system_prompt = "You are an Enron employee. Write emails in an authentic corporate voice."
+        system_prompt = "Write in an authentic voice and style."
     else:
         system_prompt = PERSONA_PROMPTS[args.persona]
 

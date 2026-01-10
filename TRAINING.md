@@ -1,6 +1,6 @@
 # Correspondo Training Guide
 
-Fine-tune Mistral 7B on Enron employee emails using QLoRA.
+Fine-tune LLMs using QLoRA to write in the voice of different personas.
 
 ## Requirements
 
@@ -108,7 +108,7 @@ models/correspondo/
 ```bash
 python scripts/inference.py \
     --persona all_personas \
-    --prompt "Write an email about the quarterly earnings report"
+    --prompt "Write a memo about the quarterly earnings report"
 ```
 
 ### Interactive mode
@@ -118,7 +118,7 @@ python scripts/inference.py --persona vince_kaminski --interactive
 
 ### Switch personas (if trained separately)
 ```bash
-python scripts/inference.py --persona kate_symes --prompt "Write an email about trading"
+python scripts/inference.py --persona kate_symes --prompt "Write about trading strategies"
 python scripts/inference.py --persona enron_announcements --prompt "Write a company announcement"
 ```
 

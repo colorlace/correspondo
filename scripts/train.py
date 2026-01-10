@@ -1,6 +1,6 @@
 """
 Correspondo Fine-tuning Script
-Fine-tunes LLMs using LoRA/QLoRA on Enron employee emails.
+Fine-tunes LLMs using LoRA/QLoRA to write in the voice of different personas.
 
 Usage:
     # Train on all personas combined
@@ -58,7 +58,7 @@ PERSONAS = [
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Fine-tune Mistral 7B on Enron emails")
+    parser = argparse.ArgumentParser(description="Fine-tune LLMs to write in the voice of different personas")
     parser.add_argument(
         "--persona",
         type=str,

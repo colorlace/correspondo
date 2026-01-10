@@ -1,5 +1,5 @@
 # RunPod Training Dockerfile for Correspondo
-# Fine-tunes LLMs using QLoRA on Enron employee emails
+# Fine-tunes LLMs using QLoRA to write in the voice of different personas
 #
 # Build:
 #   docker build -f runpod/training/Dockerfile -t yourdockerhub/correspondo-train .

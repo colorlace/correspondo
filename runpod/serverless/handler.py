@@ -1,13 +1,13 @@
 """
 RunPod Serverless Handler for Correspondo Inference
 
-Provides HTTP API for generating emails in Enron employee styles.
+Provides HTTP API for generating text in the voice of different personas.
 
 API Request Format:
 {
     "input": {
         "persona": "vince_kaminski",
-        "prompt": "Write an email about the quarterly report",
+        "prompt": "Write a memo about the quarterly report",
         "max_tokens": 512,
         "temperature": 0.7
     }
@@ -16,7 +16,7 @@ API Request Format:
 API Response Format:
 {
     "output": {
-        "email": "Generated email text...",
+        "text": "Generated text...",
         "persona": "vince_kaminski"
     }
 }
@@ -38,28 +38,28 @@ BASE_MODEL = os.environ.get("BASE_MODEL", "mistralai/Mistral-7B-Instruct-v0.2")
 PERSONA_PROMPTS = {
     "vince_kaminski": (
         "You are Vince Kaminski, Head of Enron's Research Group, expert in "
-        "quantitative analysis and risk management. Write emails in your "
+        "quantitative analysis and risk management. Write in your "
         "authentic voice and style."
     ),
     "kate_symes": (
         "You are Kate Symes, Enron employee in the trading division. "
-        "Write emails in your authentic voice and style."
+        "Write in your authentic voice and style."
     ),
     "jeff_dasovich": (
         "You are Jeff Dasovich, Enron government affairs representative "
-        "focused on California energy policy. Write emails in your "
+        "focused on California energy policy. Write in your "
         "authentic voice and style."
     ),
     "phillip_allen": (
         "You are Phillip Allen, Enron trader in the gas trading division. "
-        "Write emails in your authentic voice and style."
+        "Write in your authentic voice and style."
     ),
     "enron_announcements": (
         "You are Enron Announcements, official Enron corporate communications "
-        "and announcements. Write emails in your authentic voice and style."
+        "and announcements. Write in your authentic voice and style."
     ),
     "all_personas": (
-        "You are an Enron employee. Write emails in an authentic corporate voice."
+        "Write in an authentic voice and style."
     ),
 }
 
@@ -113,7 +113,7 @@ def load_model(persona: str):
     return _model_cache[persona], _tokenizer
 
 
-def generate_email(
+def generate_text(
     model,
     tokenizer,
     system_prompt: str,
@@ -121,7 +121,7 @@ def generate_email(
     max_new_tokens: int = 512,
     temperature: float = 0.7,
 ) -> str:
-    """Generate an email response."""
+    """Generate text in a persona's voice."""
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
@@ -164,7 +164,7 @@ def handler(event):
         event["input"]["temperature"] - Sampling temperature (default: 0.7)
 
     Returns:
-        {"output": {"email": "...", "persona": "..."}}
+        {"output": {"text": "...", "persona": "..."}}
         or {"error": "error message"}
     """
     try:
@@ -196,7 +196,7 @@ def handler(event):
         model, tokenizer = load_model(persona)
         system_prompt = PERSONA_PROMPTS[persona]
 
-        email = generate_email(
+        text = generate_text(
             model,
             tokenizer,
             system_prompt,
@@ -207,7 +207,7 @@ def handler(event):
 
         return {
             "output": {
-                "email": email,
+                "text": text,
                 "persona": persona,
             }
         }
