@@ -13,16 +13,14 @@
 
 FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 
-WORKDIR /workspace
+WORKDIR /app
 
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy training scripts
+# Copy training scripts and data
 COPY scripts/ ./scripts/
-
-# Copy training data
 COPY data/training/ ./data/training/
 
 # Copy entrypoint script
@@ -30,7 +28,7 @@ COPY runpod/training/start_training.sh .
 RUN chmod +x start_training.sh
 
 # Create models directory for output
-RUN mkdir -p models/correspondo
+RUN mkdir -p /workspace/models/correspondo /workspace/.cache/huggingface
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
@@ -38,4 +36,4 @@ ENV HF_HOME=/workspace/.cache/huggingface
 ENV TRANSFORMERS_CACHE=/workspace/.cache/huggingface
 
 # Default command - interactive shell for training
-CMD ["bash"]
+CMD ["bash", "-lc", "sleep infinity"]
