@@ -6,7 +6,7 @@
 #
 # Examples:
 #   ./start_training.sh all_personas
-#   ./start_training.sh vince_kaminski --epochs 5
+#   ./start_training.sh vince_kaminski --epochs 3
 #   ./start_training.sh all_personas --epochs 3 --batch-size 4
 #
 # Environment variables:

@@ -13,6 +13,11 @@
 
 FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 
+# Install tmux for terminal multiplexing
+RUN apt-get update && \
+    apt-get install -y tmux && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Install Python dependencies
@@ -36,4 +41,6 @@ ENV HF_HOME=/workspace/.cache/huggingface
 ENV TRANSFORMERS_CACHE=/workspace/.cache/huggingface
 
 # Default command - interactive shell for training
+# Prevents the container from exiting immediately after startup,
+# allowing users to exec into the container for interactive sessions or debugging purposes
 CMD ["bash", "-lc", "sleep infinity"]
