@@ -13,16 +13,16 @@
 
 FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 
-# Install tmux for terminal multiplexing
+# Install system dependencies (tmux, poppler for PDF processing)
 RUN apt-get update && \
-    apt-get install -y tmux && \
+    apt-get install -y tmux poppler-utils && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements-ocr.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-ocr.txt
 
 # Copy training scripts and data
 COPY scripts/ ./scripts/

@@ -1,0 +1,14 @@
+# OCR dependencies for PDF text extraction
+# Install with: pip install -r requirements-ocr.txt
+
+# OCR engine (GPU-accelerated)
+easyocr>=1.7.0
+
+# PDF to image conversion
+pdf2image>=1.16.0
+Pillow>=10.0.0
+
+# Note: pdf2image requires poppler to be installed:
+#   macOS:  brew install poppler
+#   Ubuntu: apt install poppler-utils
+#   RunPod: apt install poppler-utils (add to Dockerfile)
